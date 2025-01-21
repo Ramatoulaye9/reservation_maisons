@@ -4,6 +4,7 @@ const dotenv = require('dotenv'); // Pour charger les variables d'environnement
 const app = express();
 const userRoutes = require('./routes/userRoute')
 const houseRoutes = require('./routes/houseRoute')
+const reservationRoutes = require('./routes/reservationRoute')
 
 dotenv.config(); // Charger les variables d'environnement depuis un fichier .env
 
@@ -17,6 +18,7 @@ app.get('/', (req, res) => {
 
 app.use('/houses', houseRoutes)
 app.use('/users', userRoutes)
+app.use('/reservations', reservationRoutes)
 
 // Vérifiez si la variable d'environnement pour MongoDB est définie
 if (!process.env.MONGO_ENV) {
@@ -27,7 +29,8 @@ if (!process.env.MONGO_ENV) {
 mongoose.connect(process.env.MONGO_ENV)
     .then(() => {
         console.log("Connexion à MongoDB réussie!");
-        app.listen(3000, () => {
+        const port = process.env.PORT || 3000;
+        app.listen(port, () => {
             console.log('Le serveur démarre au port: 3000');
         });
     })

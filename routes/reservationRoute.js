@@ -14,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Ajouter une nouvelle réservation
-router.post('/', async (req, res) => {
+router.post('/ajout', async (req, res) => {
     try {
         const { reservationDate, status } = req.body;
         const userId = req.user._id; // ID de l'utilisateur connecté
