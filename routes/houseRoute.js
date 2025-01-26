@@ -2,46 +2,49 @@ const express = require("express");
 const Maison = require("../modèles/house");
 const mongoose = require("mongoose");
 const router = express.Router();
+const multer = require("multer");
 
-// Ajouter une maison
-const { title, description, price, imageUrl, location, bedrooms, livingRooms } = req.body;
-const multer = require('multer');
-
+// Configuration de Multer
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/'); // dossier où les fichiers seront enregistrés
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname); // nom unique pour chaque fichier
-  },
-});
+    destination: function (req, file, cb) {
+      cb(null, "uploads/"); // Dossier où les fichiers seront enregistrés
+    },
+    filename: function (req, file, cb) {
+      cb(null, Date.now() + "-" + file.originalname); // Nom unique pour chaque fichier
+    },
+  });
+  const upload = multer({ storage });
+  
+  // Ajouter une maison
+  router.post("/houses/ajout", upload.single("image"), async (req, res) => {
+    try {
+      const { title, description, price,imageUrl, location, bedrooms, livingRooms } = req.body;
+      const imagePath = req.file ? req.file.path : null; // Chemin de l'image
+      imageUrl=imagePath;
+  
+      if (!title || !description || !price || !location) {
+        return res.status(400).json({
+          message: "Les champs 'title', 'description', 'price', et 'location' sont obligatoires.",
+        });
+      }
+  
+      const newHouse = new Maison({
+        title,
+        description,
+        price,
+        bedrooms: bedrooms || 0,
+        livingRooms: livingRooms || 0,
+        location: JSON.parse(location), // Conversion JSON en objet
+        imageUrl,
+      });
+  
+      const savedHouse = await newHouse.save();
+      res.status(201).json({ message: "Maison ajoutée avec succès.", house: savedHouse });
+    } catch (error) {
+      res.status(500).json({ message: `Erreur serveur : ${error.message}` });
+    }
+  });
 
-const upload = multer({ storage });
-
-app.post('/houses/ajout', upload.single('image'), (req, res) => {
-  const { title, description, price, bedrooms, livingRooms, location } = req.body;
-  const imagePath = req.file ? req.file.path : null;
-
-  if (!title || !description || !price || !location) {
-    return res.status(400).json({
-      message: "Les champs 'title', 'description', 'price', et 'location' sont obligatoires.",
-    });
-  }
-
-  // Enregistrer les données dans la base de données (exemple)
-  const newHouse = {
-    title,
-    description,
-    price,
-    bedrooms,
-    livingRooms,
-    location,
-    imageUrl: imagePath,
-  };
-
-  // Simuler l'ajout dans la base de données
-  res.status(201).json({ message: 'Maison ajoutée avec succès', house: newHouse });
-});
 
 // Récupérer toutes les maisons
 router.get("/", async (req, res) => {
@@ -61,14 +64,12 @@ router.put("/:id", async (req, res) => {
   try {
     const maisonId = req.params.id;
 
-    // Vérification de l'ID
     if (!mongoose.Types.ObjectId.isValid(maisonId)) {
       return res.status(400).json({ message: "ID invalide." });
     }
 
     const { title, description, price, imageUrl, location, bedrooms, livingRooms } = req.body;
 
-    // Mise à jour des champs
     const updateData = {};
     if (title) updateData.title = title;
     if (description) updateData.description = description;
@@ -98,7 +99,6 @@ router.delete("/:id", async (req, res) => {
   try {
     const maisonId = req.params.id;
 
-    // Vérification de l'ID
     if (!mongoose.Types.ObjectId.isValid(maisonId)) {
       return res.status(400).json({ message: "ID invalide." });
     }
