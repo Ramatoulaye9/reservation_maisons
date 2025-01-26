@@ -1,33 +1,33 @@
 const mongoose = require('mongoose');
-const locationSchema = require('./location'); // Importez le schéma, pas le modèle
-const Reservation = require('./reservation'); // Importez le modèle Reservation
 
+// Sous-schéma pour la location
+const locationSchema = new mongoose.Schema({
+  city: { type: String, required: [true, "La ville est obligatoire."] },
+  district: { type: String, required: [true, "Le quartier est obligatoire."] },
+});
+
+// Schéma principal pour la maison
 const HouseSchema = new mongoose.Schema(
-    {
-        title: { type: String, required: [true, "S'il vous plaît, entrez le type d'hébergement."] },
-        description: { type: String, required: true },
-        price: {
-            type: Number,
-            required: [true, "Le champ 'prix' est obligatoire."],
-            min: [0, "Le prix doit être supérieur ou égal à 0."]
-        },
-        imageUrl: { type: String, required: false },
-        isReserved: { type: Boolean, default: false },
-        bedrooms: { type: Number },
-        livingRooms: { type: Number },
-        location: {
-            type: locationSchema, // Utilisation du sous-schéma
-            required: true,
-        },
-        reservation: {
-            type: mongoose.Schema.Types.ObjectId, // Référence vers le modèle Reservation
-            ref: 'Reservation',
-            required: false,
-        },
+  {
+    title: { type: String, required: [true, "Le titre est obligatoire."] },
+    description: { type: String, required: [true, "La description est obligatoire."] },
+    price: {
+      type: Number,
+      required: [true, "Le prix est obligatoire."],
+      min: [0, "Le prix doit être supérieur ou égal à 0."],
     },
-    {
-        timestamps: true,
+    imageUrl: { type: String },
+    // isReserved: { type: Boolean, default: false },
+    bedrooms: { type: Number, default: 0 },
+    livingRooms: { type: Number, default: 0 },
+    location: {
+      type: locationSchema, // Sous-schéma pour la localisation
+      required: [true, "Le champ 'location' est obligatoire."],
     }
+  },
+  {
+    timestamps: true,
+  }
 );
 
 const House = mongoose.model("House", HouseSchema);

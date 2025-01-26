@@ -5,6 +5,7 @@ const app = express();
 const userRoutes = require('./routes/userRoute')
 const houseRoutes = require('./routes/houseRoute')
 const reservationRoutes = require('./routes/reservationRoute')
+const cors = require('cors');
 
 dotenv.config(); // Charger les variables d'environnement depuis un fichier .env
 
@@ -12,6 +13,7 @@ app.use(express.json()); // Middleware pour traiter les requêtes JSON
 
 // app.use(express.urlencoded({ extended: true }));
 
+app.use(cors());    //Enable CORS
 app.get('/', (req, res) => {
     res.send("Salut, API");
 });
