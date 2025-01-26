@@ -4,33 +4,43 @@ const mongoose = require("mongoose");
 const router = express.Router();
 
 // Ajouter une maison
-router.post("/ajout", async (req, res) => {
-  try {
-    const { title, description, price, imageUrl, location, bedrooms, livingRooms } = req.body;
+const { title, description, price, imageUrl, location, bedrooms, livingRooms } = req.body;
+const multer = require('multer');
 
-    // Validation des champs obligatoires
-    if (!title || !description || !price || !location?.city || !location?.district) {
-      return res.status(400).json({
-        message: "Les champs 'title', 'description', 'price', et 'location' (avec 'city' et 'district') sont obligatoires.",
-      });
-    }
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/'); // dossier où les fichiers seront enregistrés
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname); // nom unique pour chaque fichier
+  },
+});
 
-    // Création de la nouvelle maison
-    const nouvelleMaison = new Maison({
-      title,
-      description,
-      price,
-      imageUrl,
-      location,
-      bedrooms,
-      livingRooms,
+const upload = multer({ storage });
+
+app.post('/houses/ajout', upload.single('image'), (req, res) => {
+  const { title, description, price, bedrooms, livingRooms, location } = req.body;
+  const imagePath = req.file ? req.file.path : null;
+
+  if (!title || !description || !price || !location) {
+    return res.status(400).json({
+      message: "Les champs 'title', 'description', 'price', et 'location' sont obligatoires.",
     });
-
-    const maisonSave = await nouvelleMaison.save();
-    res.status(201).json(maisonSave);
-  } catch (error) {
-    res.status(500).json({ message: `Erreur serveur : ${error.message}` });
   }
+
+  // Enregistrer les données dans la base de données (exemple)
+  const newHouse = {
+    title,
+    description,
+    price,
+    bedrooms,
+    livingRooms,
+    location,
+    imageUrl: imagePath,
+  };
+
+  // Simuler l'ajout dans la base de données
+  res.status(201).json({ message: 'Maison ajoutée avec succès', house: newHouse });
 });
 
 // Récupérer toutes les maisons
