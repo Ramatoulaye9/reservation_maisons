@@ -16,11 +16,12 @@ const storage = multer.diskStorage({
   const upload = multer({ storage });
   
   // Ajouter une maison
-  router.post("/houses/ajout", upload.single("image"), async (req, res) => {
+  router.post("/ajout", upload.single("image"), async (req, res) => {
     try {
       const { title, description, price,imageUrl, location, bedrooms, livingRooms } = req.body;
       const imagePath = req.file ? req.file.path : null; // Chemin de l'image
-      imageUrl=imagePath;
+      // Utilise une nouvelle variable pour l'image finale
+const finalImageUrl = imagePath || imageUrl;
   
       if (!title || !description || !price || !location) {
         return res.status(400).json({
@@ -34,8 +35,8 @@ const storage = multer.diskStorage({
         price,
         bedrooms: bedrooms || 0,
         livingRooms: livingRooms || 0,
-        location: JSON.parse(location), // Conversion JSON en objet
-        imageUrl,
+        location, // Conversion JSON en objet
+        imageUrl: finalImageUrl,
       });
   
       const savedHouse = await newHouse.save();
