@@ -17,6 +17,7 @@ const storage = multer.diskStorage({
   
   // Ajouter une maison
   router.post("/ajout", upload.single("image"), async (req, res) => {
+    console.log(req.file); // Log pour vérifier le fichier reçu
     try {
       const { title, description, price,imageUrl, location, bedrooms, livingRooms } = req.body;
       const imagePath = req.file ? req.file.path : null; // Chemin de l'image
