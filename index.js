@@ -5,6 +5,7 @@ const app = express();
 const userRoutes = require('./routes/userRoute')
 const houseRoutes = require('./routes/houseRoute')
 const reservationRoutes = require('./routes/reservationRoute')
+const path = require('path'); // Importation de path
 const cors = require('cors');
 
 dotenv.config(); // Charger les variables d'environnement depuis un fichier .env
