@@ -18,6 +18,8 @@ app.get('/', (req, res) => {
     res.send("Salut, API");
 });
 
+// Serve the 'uploads' folder as static files
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/houses', houseRoutes)
 app.use('/users', userRoutes)
 app.use('/reservations', reservationRoutes)

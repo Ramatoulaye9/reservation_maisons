@@ -17,7 +17,8 @@ const upload = multer({ storage });
 router.post("/ajout", upload.single("image"), async (req, res) => {
   try {
     const { title, description, price, imageUrl, city, district, bedrooms, livingRooms } = req.body;
-    const finalImageUrl = req.file ? req.file.path : imageUrl;
+    // const finalImageUrl = req.file ? req.file.path : imageUrl;
+    const finalImageUrl = req.file ? '/uploads/' + req.file.filename : imageUrl;
 
     if (!title || !description || !price || !city || !district) {
       return res.status(400).json({ message: "Tous les champs obligatoires doivent être remplis." });
