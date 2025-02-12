@@ -1,26 +1,40 @@
 const express = require("express");
-const House = require("../modèles/house");
 const mongoose = require("mongoose");
-const router = express.Router();
 const multer = require("multer");
+const path = require("path");
+const House = require("../models/house");
 
-// Configuration de Multer
+const router = express.Router();
+
+// Configuration Multer
 const storage = multer.diskStorage({
-  destination: "uploads/",
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + "-" + file.originalname);
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, "../uploads"));
   },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + "-" + file.originalname);
+  }
 });
-const upload = multer({ storage });
+
+const fileFilter = function (req, file, cb) {
+  if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+    return cb(new Error("Format invalide. Utilisez jpg, jpeg ou png."));
+  }
+  cb(null, true);
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 },
+});
 
 // Ajouter une maison
 router.post("/ajout", upload.single("image"), async (req, res) => {
   try {
-    const { title, description, price, imageUrl, city, district, bedrooms, livingRooms } = req.body;
-    // const finalImageUrl = req.file ? req.file.path : imageUrl;
-    const finalImageUrl = req.file ? '/uploads/' + req.file.filename : imageUrl;
+    const { title, description, price, city, district, bedrooms, livingRooms } = req.body;
 
-    if (!title || !description || !price || !city || !district) {
+    if (!title || !description || !price || !city || !district || !req.file) {
       return res.status(400).json({ message: "Tous les champs obligatoires doivent être remplis." });
     }
 
@@ -32,11 +46,12 @@ router.post("/ajout", upload.single("image"), async (req, res) => {
       livingRooms,
       city,
       district,
-      imageUrl: finalImageUrl,
+      imageUrl: `/uploads/${req.file.filename}`,
     });
 
     const savedHouse = await newHouse.save();
     res.status(201).json({ message: "Maison ajoutée avec succès.", house: savedHouse });
+
   } catch (error) {
     res.status(500).json({ message: `Erreur serveur : ${error.message}` });
   }
@@ -64,7 +79,10 @@ router.put("/:id", async (req, res) => {
     }
 
     const updateData = { ...req.body };
-    const maisonModifiee = await House.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
+    const maisonModifiee = await House.findByIdAndUpdate(id, updateData, {
+      new: true,
+      runValidators: true,
+    });
 
     if (!maisonModifiee) {
       return res.status(404).json({ message: "Maison introuvable." });
