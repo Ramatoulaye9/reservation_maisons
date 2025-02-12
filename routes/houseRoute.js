@@ -4,63 +4,56 @@ const mongoose = require("mongoose");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
+const fs = require("fs");
+
+// Vérifier/créer le dossier uploads
+const uploadPath = path.join(__dirname, "../uploads");
+if (!fs.existsSync(uploadPath)) {
+  fs.mkdirSync(uploadPath);
+}
+
+// Configuration de Multer
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadPath);
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + '-' + file.originalname);
+  }
+});
+
+const fileFilter = function (req, file, cb) {
+  if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+    return cb(new Error('Entrez un fichier valide: png, jpg ou jpeg'));
+  }
+  cb(null, true);
+};
+
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 5 * 1024 * 1024 }
+}).single("image");
 
 // Ajouter une maison
 router.post("/ajout", async (req, res) => {
   try {
-    // Configuration de Multer
-    const storage = multer.diskStorage({
-      destination: function (req, file, cb) {
-        // Utiliser un chemin absolu vers le dossier uploads à la racine du projet
-        cb(null, path.join(__dirname, "../uploads"));
-      },
-      filename: function (req, file, cb) {
-        // Générer un nom unique pour éviter les conflits
-        cb(null, Date.now() + '-' + file.originalname);
-      }
-    });
-    
-    const fileFilter = function (req, file, cb) {
-      if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-        return cb(new Error('Entrez un fichier valide: png, jpg ou jpeg'));
-      }
-      cb(null, true);
-    };
-    
-    const upload = multer({
-      storage: storage,
-      fileFilter: fileFilter,
-      limits: { fileSize: 5 * 1024 * 1024 }
-    }).single("image");
-    
-    // Utiliser la fonction upload pour traiter le multipart/form-data
     upload(req, res, async function (err) {
       if (err instanceof multer.MulterError) {
-        console.log("Erreur lors du chargement de l'image:", err);
-        return res.status(400).json({ error: "Erreur lors du chargement de l'image" });
+        console.error("Erreur Multer:", err);
+        return res.status(400).json({ error: err.message });
       } else if (err) {
-        console.log("Erreur inconnue:", err);
-        return res.status(400).json({ error: "Erreur inconnue" });
+        console.error("Erreur inconnue:", err);
+        return res.status(400).json({ error: err.message });
       }
       
       // Extraction des données du formulaire
-      const {
-        title,
-        description,
-        price,
-        city,
-        district,
-        bedrooms,
-        livingRooms,
-      } = req.body;
+      const { title, description, price, city, district, bedrooms, livingRooms } = req.body;
 
       if (!title || !description || !price || !city || !district || !req.file) {
-        return res.status(400).json({
-          message: "Tous les champs obligatoires doivent être remplis."
-        });
+        return res.status(400).json({ message: "Tous les champs obligatoires doivent être remplis." });
       }
       
-      // Création de la nouvelle maison en utilisant l'URL complète de l'image
       const newHouse = new House({
         title,
         description,
