@@ -2,58 +2,25 @@ const express = require("express");
 const House = require("../modèles/house");
 const mongoose = require("mongoose");
 const router = express.Router();
-const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require('cloudinary').v2;
+const multer = require('multer');
 
-// Vérifier/créer le dossier uploads
-const uploadPath = path.join(__dirname, "../uploads");
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath);
-}
-
-// Configuration de Multer
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-
-const fileFilter = function (req, file, cb) {
-  if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
-    return cb(new Error('Entrez un fichier valide: png, jpg ou jpeg'));
-  }
-  cb(null, true);
-};
-
-const upload = multer({
-  storage: storage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 }
-}).single("image");
-
-// Ajouter une maison
+// Route pour ajouter une maison avec image
 router.post("/ajout", async (req, res) => {
   try {
     upload(req, res, async function (err) {
       if (err instanceof multer.MulterError) {
-        console.error("Erreur Multer:", err);
-        return res.status(400).json({ error: err.message });
-      } else if (err) {
-        console.error("Erreur inconnue:", err);
         return res.status(400).json({ error: err.message });
       }
-      
+
       // Extraction des données du formulaire
       const { title, description, price, city, district, bedrooms, livingRooms } = req.body;
+      const imageUrl = req.file ? req.file.path : '';
 
-      if (!title || !description || !price || !city || !district || !req.file) {
-        return res.status(400).json({ message: "Tous les champs obligatoires doivent être remplis." });
+      if (!title || !description || !price || !city || !district || !imageUrl) {
+        return res.status(400).json({ message: "Tous les champs sont requis." });
       }
-      
+
       const newHouse = new House({
         title,
         description,
@@ -62,9 +29,9 @@ router.post("/ajout", async (req, res) => {
         livingRooms,
         city,
         district,
-        imageUrl: '/uploads/' + req.file.filename,
+        imageUrl, // URL du fichier sur Cloudinary
       });
-      
+
       const savedHouse = await newHouse.save();
       res.status(201).json({ message: "Maison ajoutée avec succès.", house: savedHouse });
     });
