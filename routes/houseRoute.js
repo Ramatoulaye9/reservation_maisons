@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const path = require("path");
-const House = require("../models/house");
+const House = require("../modèles/house");
 
 const router = express.Router();
 
