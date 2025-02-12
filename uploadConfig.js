@@ -1,8 +1,9 @@
-// config/uploadConfig.js
 const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('cloudinary').v2;
 const dotenv = require('dotenv');
+const path = require('path'); // Importation de path pour les extensions
+
 dotenv.config();
 
 // Configuration de Cloudinary
@@ -18,14 +19,14 @@ const storage = new CloudinaryStorage({
   params: {
     folder: 'uploads', // Dossier sur Cloudinary
     format: (req, file) => {
-        const allowedFormats = ['jpg', 'jpeg', 'png'];
-        const extname = path.extname(file.originalname).toLowerCase().slice(1);
-        if (allowedFormats.includes(extname)) {
-          return extname;
-        }
-        return 'jpg'; // Par défaut
-      },
-          public_id: (req, file) => file.originalname, // Utilisation du nom original du fichier
+      const allowedFormats = ['jpg', 'jpeg', 'png'];
+      const extname = path.extname(file.originalname).toLowerCase().slice(1);
+      if (allowedFormats.includes(extname)) {
+        return extname;
+      }
+      return 'jpg'; // Par défaut
+    },
+    public_id: (req, file) => file.originalname, // Utilisation du nom original du fichier
   },
 });
 
