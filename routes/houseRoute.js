@@ -2,8 +2,7 @@ const express = require("express");
 const House = require("../modèles/house");
 const mongoose = require("mongoose");
 const router = express.Router();
-const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
+const { upload } = require('../uploadConfig'); // Assurez-vous que ce chemin est correct
 
 // Route pour ajouter une maison avec image
 router.post("/ajout", async (req, res) => {
@@ -18,7 +17,7 @@ router.post("/ajout", async (req, res) => {
       const imageUrl = req.file ? req.file.path : '';
 
       if (!title || !description || !price || !city || !district || !imageUrl) {
-        return res.status(400).json({ message: "Tous les champs sont requis." });
+        return res.status(400).json({ message: "Tous les champs sont requis, y compris l'image." });
       }
 
       const newHouse = new House({

@@ -7,35 +7,10 @@ const houseRoutes = require("./routes/houseRoute");
 const reservationRoutes = require("./routes/reservationRoute");
 const path = require("path"); // Importation de path
 const cors = require("cors");
-const express = require('express');
-const mongoose = require('mongoose');
-const cloudinary = require('cloudinary').v2;
-const multer = require('multer');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
-const path = require('path');
-const fs = require('fs');
-const dotenv = require('dotenv'); // Charger les variables d'environnement
+const fs = require("fs");  // Ajoute cette ligne au début de ton fichier
 
-dotenv.config(); // Charger les variables du fichier .env
-
-// Configuration de Cloudinary
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET
-});
-
-// Configuration de Multer avec CloudinaryStorage
-const storage = new CloudinaryStorage({
-  cloudinary: cloudinary,
-  params: {
-    folder: 'uploads', // Dossier sur Cloudinary
-    format: async (req, file) => 'png', // Format (modifiable en fonction des besoins)
-    public_id: (req, file) => file.originalname, // Utilisation du nom original du fichier
-  },
-});
-
-const upload = multer({ storage });
+// Charger les variables d'environnement
+dotenv.config(); 
 
 // Vérifier/créer le dossier uploads localement
 const uploadPath = path.join(__dirname, 'uploads');
@@ -45,24 +20,6 @@ if (!fs.existsSync(uploadPath)) {
 
 app.use(express.json());
 
-// Route d'upload de fichier vers Cloudinary
-app.post('/api/upload', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ message: 'Aucun fichier téléchargé.' });
-  }
-
-  res.json({
-    message: 'Fichier uploadé avec succès !',
-    fileUrl: req.file.path // URL du fichier sur Cloudinary
-  });
-});
-
-
-dotenv.config(); // Charger les variables d'environnement depuis un fichier .env
-
-app.use(express.json()); // Middleware pour traiter les requêtes JSON
-
-// app.use(express.urlencoded({ extended: true }));
 const corsOptions = {
   origin: "http://localhost:4200", // ou utilisez '*' pour autoriser toutes les origines (attention en prod)
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
