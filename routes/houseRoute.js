@@ -47,20 +47,29 @@ router.get("/", async (req, res) => {
 });
 
 // Modifier une maison
-router.put("/:id", async (req, res) => {
+router.put("/:id", upload.single('image'), async (req, res) => {
   try {
     const { id } = req.params;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ message: "ID invalide." });
     }
+
     const updateData = { ...req.body };
+
+    // Vérifie si une nouvelle image est envoyée
+    if (req.file) {
+      updateData.imageUrl = req.file.path; // Met à jour l'image
+    }
+
     const maisonModifiee = await House.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     });
+
     if (!maisonModifiee) {
       return res.status(404).json({ message: "Maison introuvable." });
     }
+
     res.status(200).json(maisonModifiee);
   } catch (error) {
     res.status(500).json({ message: `Erreur serveur : ${error.message}` });
